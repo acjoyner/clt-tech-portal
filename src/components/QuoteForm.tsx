@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, ChangeEvent, FormEvent } from 'react'; // Added ChangeEvent and FormEvent
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../src/lib/supabase';
 
 export default function QuoteForm() {
   const [formData, setFormData] = useState({

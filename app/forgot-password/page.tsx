@@ -9,7 +9,7 @@ export default function ForgotPassword() {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/update-password`,
+      redirectTo: `https://clt-tech-portal.vercel.app/update-password`,
     });
 
     if (error) {
