@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-XXXXXXX');
+            })(window,document,'script','dataLayer','GTM-NBF27334');
           `}
         </Script>
       </head>
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* GTM Noscript - backup for users with JavaScript disabled */}
         <noscript>
           <iframe 
-            src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-NBF27334"
             height="0" width="0" style={{ display: 'none', visibility: 'hidden' }}
           ></iframe>
         </noscript>
