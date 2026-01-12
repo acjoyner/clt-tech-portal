@@ -1,36 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Project Overview: CLT Systems Portal
+This is a full-stack enterprise management system designed for a high-volume hardware refurbishing and repair business in Charlotte, NC. The application bridges the gap between customer-facing service requests and internal operational logistics.
 
-## Getting Started
+🛠 Key Features
+Neobrutalist UI/UX: A high-contrast, high-readability design system utilizing thick borders, hard shadows, and bold typography for professional utility.
 
-First, run the development server:
+Refurbishment Pipeline: Track devices from initial intake to "For Sale" status with specific data fields for CPU, RAM, and Storage.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Hardware Health Diagnostics: Integration for Verified Health Badges, displaying specific Battery and SSD health percentages on public listings to build customer trust.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Active Repair Tracker: A dedicated workflow for customer-owned devices, allowing status updates from "Diagnosing" to "Ready for Pickup".
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Annual Revenue Analytics: Dynamic year-round charting using Recharts to track monthly "Gravy" (net profit) and sales volume.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Role-Based Security: Strict admin-only access for sensitive financial data and lead management, locked to specific authorized email addresses.
 
-## Learn More
+🚀 Tech Stack
+Framework: Next.js 15 (App Router)
 
-To learn more about Next.js, take a look at the following resources:
+Database & Auth: Supabase
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Visualization: Recharts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Styling: Tailwind CSS
