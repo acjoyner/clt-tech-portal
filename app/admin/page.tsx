@@ -156,7 +156,7 @@ export default function AdminDashboard() {
       <section className="mb-16 bg-white border-8 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
         <h2 className="text-3xl font-black uppercase italic mb-6">Annual Revenue</h2>
         <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={300}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#000" />
               <XAxis dataKey="month" tick={{ fill: "#000", fontWeight: "bold" }} />

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase";
-import Link from "next/link";
+export const dynamic = 'force-dynamic';
 
 interface InventoryItem {
   id: number;
