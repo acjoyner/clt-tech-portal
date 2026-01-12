@@ -1,5 +1,5 @@
 import React from "react";
-import QuoteForm from "./QuoteForm";
+import QuoteForm from "../src/components/QuoteForm";
 import Link from "next/link";
 
 const jsonLd = {

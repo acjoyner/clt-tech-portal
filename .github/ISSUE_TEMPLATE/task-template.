@@ -1,0 +1,24 @@
+---
+name: Business Task Template
+about: Use this for new hardware repairs or software features.
+title: "[TASK]: "
+labels: enhancement
+assignees: ''
+
+---
+
+## 📋 Task Description
+## 💻 Tech or Hardware Involved
+- [ ] Software (Next.js/Supabase)
+- [ ] Hardware (Laptop/Desktop Parts)
+- [ ] Marketing/SEO
+
+## 🛠 Steps to Complete
+1. 
+2. 
+3. 
+
+## 🔗 Related Lead/Inventory ID
+## ✅ Definition of Done
+- [ ] Feature is live on cltlaptops.com
+- [ ] Profit updated in Admin "Gravy" tracker
