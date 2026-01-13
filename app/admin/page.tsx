@@ -31,6 +31,7 @@ interface InventoryItem {
 }
 
 interface LaptopQuote {
+  last_active: Date | null;
   id: number;
   customer_name: string;
   laptop_details: string;
@@ -178,6 +179,7 @@ export default function AdminDashboard() {
               <tr>
                 <th className="p-4">Customer</th>
                 <th className="p-4">Device</th>
+                <th className="p-4">Last Active</th>
                 <th className="p-4 text-center">Status</th>
               </tr>
             </thead>
@@ -186,6 +188,7 @@ export default function AdminDashboard() {
                 <tr key={quote.id} className="border-b-2 border-black">
                   <td className="p-4 font-bold">{quote.customer_name}</td>
                   <td className="p-4">{quote.laptop_details}</td>
+                  <td className="p-4 text-xs font-mono">{quote.last_active ? new Date(quote.last_active).toLocaleDateString() : "N/A"}</td>
                   <td className="p-4 text-center">
                     <select
                       defaultValue={quote.repair_status || "pending"}
