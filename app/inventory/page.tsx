@@ -37,7 +37,7 @@ export default function PublicInventory() {
         {items.map((item) => (
           <div key={item.id} className="border-8 border-black shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] bg-white">
             <div className="h-64 border-b-8 border-black relative">
-              {item.image_url && <img src={item.image_url} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />}
+              {item.image_url && <img src={item.image_url} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" alt="PC image"/>}
               
               {/* VERIFIED HEALTH BADGES */}
               <div className="absolute bottom-4 left-4 flex flex-col gap-2">

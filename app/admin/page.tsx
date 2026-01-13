@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+
+
 import {
   BarChart,
   Bar,
