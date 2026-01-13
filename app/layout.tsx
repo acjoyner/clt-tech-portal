@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "../src/components/Navbar";
-import Script from "next/script"; // Import Script for analytics
+import Script from "next/script"; 
+import Footer from "@/src/components/Footer";
 
 export const metadata: Metadata = {
   title: 'Sell & Recycle Laptops Charlotte | Fast Cash & Eco-Friendly Repair',
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           ></iframe>
         </noscript>
         <Navbar />
-        {children}
+        <main className="min-h-screen">
+          {children}
+        </main>
+        <Footer /> 
       </body>
     </html>
   );
