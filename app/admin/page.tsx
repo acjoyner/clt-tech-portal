@@ -49,6 +49,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshSignal, setRefreshSignal] = useState(0);
   const [activeModal, setActiveModal] = useState<ModalState | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const router = useRouter();
 
   // --- Chart & Financial Calculations ---
@@ -174,16 +175,14 @@ export default function AdminDashboard() {
   };
 
   const handleBuyLead = async (quote: LaptopQuote, price: number) => {
-    const { error: invError } = await supabase
-      .from("inventory")
-      .insert([
-        {
-          brand: "Unknown",
-          model: quote.laptop_details,
-          status: "intake",
-          purchase_price: price,
-        },
-      ]);
+    const { error: invError } = await supabase.from("inventory").insert([
+      {
+        brand: "Unknown",
+        model: quote.laptop_details,
+        status: "intake",
+        purchase_price: price,
+      },
+    ]);
 
     if (!invError) {
       await supabase
@@ -195,20 +194,40 @@ export default function AdminDashboard() {
     }
   };
 
-  const deleteItem = async (id: number) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this device? This cannot be undone."
-      )
-    )
-      return;
+  // const deleteItem = async (id: number) => {
+  //   if (
+  //     !confirm(
+  //       "Are you sure you want to delete this device? This cannot be undone."
+  //     )
+  //   )
+  //     return;
 
-    const { error } = await supabase.from("inventory").delete().eq("id", id);
+  //   const { error } = await supabase.from("inventory").delete().eq("id", id);
+
+  //   if (!error) {
+  //     setRefreshSignal((s) => s + 1); // Refresh the list
+  //   } else {
+  //     alert("Error deleting: " + error.message);
+  //   }
+  // };
+
+  const confirmDelete = (id: number) => {
+    setItemToDelete(id); // This triggers the snackbar to appear
+  };
+
+  const handleFinalDelete = async () => {
+    if (!itemToDelete) return;
+
+    const { error } = await supabase
+      .from("inventory")
+      .delete()
+      .eq("id", itemToDelete);
 
     if (!error) {
-      setRefreshSignal((s) => s + 1); // Refresh the list
+      setRefreshSignal((s) => s + 1);
+      setItemToDelete(null); // Close the snackbar
     } else {
-      alert("Error deleting: " + error.message);
+      alert("Error: " + error.message);
     }
   };
 
@@ -285,7 +304,16 @@ export default function AdminDashboard() {
                     <td className="p-4">{quote.laptop_details}</td>
                     <td className="p-4 text-xs font-mono">
                       {quote.last_active
-                        ? new Date(quote.last_active).toLocaleDateString('en-US', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', year: 'numeric'} )
+                        ? new Date(quote.last_active).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              year: "numeric",
+                            }
+                          )
                         : "N/A"}
                     </td>
                     <td className="p-4 text-center">
@@ -360,8 +388,8 @@ export default function AdminDashboard() {
                       </button>
                       {/* NEW DELETE BUTTON */}
                       <button
-                        onClick={() => deleteItem(item.id)}
-                        className="bg-red-500 text-white px-2 py-1 font-black text-[10px] uppercase border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-white hover:text-red-500"
+                        onClick={() => confirmDelete(item.id)}
+                        className="bg-red-500 text-white px-2 py-1 font-black text-[10px] uppercase border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-white hover:text-red-500 transition-colors"
                       >
                         Delete
                       </button>
@@ -611,6 +639,28 @@ export default function AdminDashboard() {
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+      {/* DELETE VERIFICATION SNACKBAR */}
+      {itemToDelete && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-200 bg-red-600 border-8 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center min-w-[320px] animate-in fade-in slide-in-from-bottom-4">
+          <p className="font-black uppercase text-white text-xl mb-6 italic">
+            Confirm Deletion?
+          </p>
+          <div className="flex gap-4 w-full">
+            <button
+              onClick={handleFinalDelete}
+              className="flex-1 bg-white text-black border-4 border-black p-3 font-black uppercase hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+            >
+              Yes, Delete
+            </button>
+            <button
+              onClick={() => setItemToDelete(null)}
+              className="flex-1 bg-gray-200 text-black border-4 border-black p-3 font-black uppercase hover:bg-white transition-all"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
