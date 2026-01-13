@@ -32,6 +32,7 @@ interface LaptopQuote {
   last_active: string | null;
   id: number;
   customer_name: string;
+  email: string;
   laptop_details: string;
   status: string;
   repair_status?: string;
@@ -108,11 +109,35 @@ export default function AdminDashboard() {
     }
   };
 
-  const updateRepairStatus = async (id: number, status: string) => {
-    const { error } = await supabase.from("quotes").update({ repair_status: status }).eq("id", id);
-    if (!error) setRefreshSignal(s => s + 1);
-  };
+  const updateRepairStatus = async (id: number, status: string, quote: LaptopQuote) => {
+  // 1. Update the Database
+  const { error } = await supabase
+    .from("quotes")
+    .update({ repair_status: status })
+    .eq("id", id);
 
+  if (!error) {
+    setRefreshSignal((s) => s + 1);
+
+    // 2. Trigger the Email Notification
+    try {
+      await fetch('/api/status-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: quote.email, // Ensure email is in your LaptopQuote interface
+          customerName: quote.customer_name,
+          device: quote.laptop_details,
+          status: status
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to send email notification:", err);
+    }
+  }
+};
+
+  
   const saveSpecs = async (id: number, updates: Partial<InventoryItem>) => {
     const { error } = await supabase.from("inventory").update(updates).eq("id", id);
     if (!error) { setRefreshSignal(s => s + 1); setActiveModal(null); }
@@ -188,7 +213,7 @@ export default function AdminDashboard() {
                   <td className="p-4 text-center">
                     <select
                       defaultValue={quote.repair_status || "pending"}
-                      onChange={(e) => updateRepairStatus(quote.id, e.target.value)}
+                      onChange={(e) => updateRepairStatus(quote.id, e.target.value, quote)}
                       className="border-2 border-black p-1 font-black uppercase text-xs"
                     >
                       <option value="pending">Diagnosing</option>
