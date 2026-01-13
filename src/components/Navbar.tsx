@@ -1,75 +1,93 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
-import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-
+import { User } from "@supabase/supabase-js";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
+  // --- LOGOUT LOGIC ---
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setIsMenuOpen(false);
+    router.push("/login");
+    router.refresh();
+  }, [router]);
+
+  // --- INACTIVITY TIMER (30 MINUTES) ---
   useEffect(() => {
-    // Check session on load
+    if (!user) return;
+
+    let timeout: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      // 30 minutes = 1800000 ms
+      timeout = setTimeout(() => {
+        alert("Session expired due to inactivity.");
+        handleLogout();
+      }, 1800000); 
+    };
+
+    // Events to track activity
+    const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart"];
+    events.forEach((name) => document.addEventListener(name, resetTimer));
+
+    resetTimer(); // Start timer on mount
+
+    return () => {
+      events.forEach((name) => document.removeEventListener(name, resetTimer));
+      clearTimeout(timeout);
+    };
+  }, [user, handleLogout]);
+
+  // --- AUTH STATE ---
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
-
-    // Watch for login/logout
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  };
-
   return (
-    <nav className="flex justify-between items-center p-6 border-b-8 border-black bg-white">
-      <Link href="/" className="font-black text-2xl italic uppercase">CLT SYSTEMS</Link>
-      
-      <div className="flex gap-4 items-center">
-        <Link href="/inventory" className="font-bold uppercase text-black">Shop</Link>
+    <nav className="sticky top-0 z-[100] bg-white border-b-8 border-black p-4 md:p-6 flex justify-between items-center">
+      <Link href="/" className="font-black italic text-2xl uppercase text-black">
+        CLT <span className="text-blue-600">SYSTEMS</span>
+      </Link>
 
-        {/* ONLY show Admin if it is YOU */}
-        {user?.email === "anthony.c.joyner@gmail.com" && (
-          <Link href="/admin" className="bg-black text-white px-4 py-2 font-black uppercase border-4 border-black hover:bg-white hover:text-black">
-            Admin
-          </Link>
+      {/* BURGER ICON (Mobile Only) */}
+      <button 
+        className="md:hidden border-4 border-black p-1"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+      >
+        <div className="w-6 h-1 bg-black mb-1"></div>
+        <div className="w-6 h-1 bg-black mb-1"></div>
+        <div className="w-6 h-1 bg-black"></div>
+      </button>
+
+      {/* NAV LINKS */}
+      <div className={`${isMenuOpen ? "flex" : "hidden"} md:flex flex-col md:flex-row absolute md:relative top-full left-0 w-full md:w-auto bg-white border-b-8 md:border-none border-black p-6 md:p-0 gap-4 items-center`}>
+        <Link href="/inventory" className="font-black uppercase text-black">Shop</Link>
+        
+        {user ? (
+          <>
+            <Link href="/profile" className="font-black uppercase text-black border-b-4 border-black">Profile</Link>
+            {user.email === "anthony.c.joyner@gmail.com" && (
+              <Link href="/admin" className="bg-black text-white px-4 py-2 font-black uppercase border-4 border-black">Admin</Link>
+            )}
+            <button onClick={handleLogout} className="font-black uppercase text-red-600">Logout</button>
+          </>
+        ) : (
+          <Link href="/login" className="bg-blue-600 text-white border-4 border-black px-6 py-2 font-black uppercase">Login</Link>
         )}
-
-       {user ? (
-  <div className="flex gap-4 items-center">
-    <Link 
-      href="/profile" 
-      className="font-black uppercase text-sm md:text-base text-black border-b-4 border-black hover:text-blue-600 transition-all"
-    >
-      My Profile 
-     
-    </Link>
-    
-    <button 
-      onClick={handleLogout} 
-      className="font-black uppercase text-sm md:text-base text-red-600 hover:bg-red-600 hover:text-white px-2 py-1 transition-all border-2 border-transparent hover:border-black"
-    >
-      Logout
-    </button>
-  </div>
-) : (
-  <Link 
-    href="/login" 
-    className="bg-blue-600 text-white border-4 border-black px-4 py-2 font-black uppercase text-sm md:text-base shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-  >
-    Login
-  </Link>
-)}
       </div>
     </nav>
   );
