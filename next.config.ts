@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'your-project-id.supabase.co', // Replace with your actual Supabase URL
+        hostname: 'hnvxaaqriuajutyryekr.supabase.co', // This is the correct API host
         port: '',
         pathname: '/storage/v1/object/public/**',
       },
