@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase";
 import Image from "next/image";
+import { useCart } from "@/src/context/CartContext";
 
 interface InventoryItem {
   id: number;
@@ -43,6 +44,8 @@ export default function InventoryPage() {
       default: return 'bg-orange-400';
     }
   };
+
+  const { addToCart } = useCart();
 
   return (
     <div className="p-8 bg-white min-h-screen text-black">
@@ -96,9 +99,18 @@ export default function InventoryPage() {
               <p className="font-bold text-lg mb-1">{item.model}</p>
               <p className="font-bold text-sm text-gray-500 uppercase mb-6 tracking-widest">{item.cpu}</p>
               
-              <button className="w-full bg-blue-600 text-white p-4 font-black uppercase border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all">
-                Add to Cart
-              </button>
+              <button 
+  onClick={() => addToCart({
+    id: item.id,
+    brand: item.brand,
+    model: item.model,
+    price: item.sale_price_listing,
+    image: item.image_url
+  })}
+  className="w-full bg-blue-600 text-white p-4 font-black border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
+>
+  Add to Cart
+</button>
             </div>
           </div>
         ))}

@@ -4,10 +4,12 @@ import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
+import { useCart } from "../context/CartContext";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { cart } = useCart(); // Access the cart state
   const [showWarning, setShowWarning] = useState(false);
   const router = useRouter();
 
@@ -67,6 +69,18 @@ export default function Navbar() {
         <Link href="/" className="font-black italic text-2xl uppercase text-black">
           CLT <span className="text-blue-600">SYSTEMS</span>
         </Link>
+        <div className="flex items-center gap-6">
+        {/* CART ICON WITH COUNT */}
+        <Link href="/cart" className="relative group">
+          <span className="font-black uppercase italic text-black group-hover:text-blue-600">
+            Cart
+          </span>
+          {cart.length > 0 && (
+            <span className="absolute -top-3 -right-4 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 border-2 border-black rounded-full animate-bounce">
+              {cart.length}
+            </span>
+          )}
+        </Link>
 
         {/* BURGER ICON */}
         <button 
@@ -93,6 +107,7 @@ export default function Navbar() {
           ) : (
             <Link href="/login" className="bg-blue-600 text-white border-4 border-black px-6 py-2 font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-white hover:text-blue-600">Login</Link>
           )}
+        </div>
         </div>
       </nav>
 
