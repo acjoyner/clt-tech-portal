@@ -36,12 +36,14 @@ interface LaptopQuote {
   laptop_details: string;
   status: string;
   repair_status?: string;
+  notes?: string;
 }
 
 type ModalState =
   | { type: "specs"; data: InventoryItem }
   | { type: "publish"; data: InventoryItem }
-  | { type: "buy"; data: LaptopQuote };
+  | { type: "buy"; data: LaptopQuote }
+  | { type: "notes"; data: LaptopQuote };
 
 export default function AdminDashboard() {
   const [quotes, setQuotes] = useState<LaptopQuote[]>([]);
@@ -117,16 +119,14 @@ export default function AdminDashboard() {
   };
 
   const handleBuyLead = async (quote: LaptopQuote, price: number) => {
-    const { error: invError } = await supabase
-      .from("inventory")
-      .insert([
-        {
-          brand: "Unknown",
-          model: quote.laptop_details,
-          status: "intake",
-          purchase_price: price,
-        },
-      ]);
+    const { error: invError } = await supabase.from("inventory").insert([
+      {
+        brand: "Unknown",
+        model: quote.laptop_details,
+        status: "intake",
+        purchase_price: price,
+      },
+    ]);
     if (!invError) {
       await supabase
         .from("quotes")
@@ -137,38 +137,53 @@ export default function AdminDashboard() {
     }
   };
 
-  const updateRepairStatus = async (
-    id: number,
-    status: string,
-    quote: LaptopQuote
-  ) => {
-    // 1. Update the Database
+  const saveNotes = async (id: number, notes: string) => {
     const { error } = await supabase
       .from("quotes")
-      .update({ repair_status: status })
+      .update({ notes: notes })
+      .eq("id", id);
+
+    if (!error) {
+      setRefreshSignal((s) => s + 1);
+      setActiveModal(null); // Close the modal after saving
+    }
+  };
+
+  const updateRepairStatus = async (
+    id: number,
+    newRepairStatus: string,
+    quote: LaptopQuote
+  ) => {
+    // We update BOTH 'repair_status' (the sub-status like "On Bench")
+    // and 'status' (the main status to move it out of the Intake Queue)
+    const { error } = await supabase
+      .from("quotes")
+      .update({
+        repair_status: newRepairStatus,
+        status: "active", // This moves the item from New Leads to Active Workbench
+      })
       .eq("id", id);
 
     if (!error) {
       setRefreshSignal((s) => s + 1);
 
-      // 2. Trigger the Email Notification
+      // Trigger Email Notification
       try {
         await fetch("/api/status-update", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: quote.email, // Ensure email is in your LaptopQuote interface
+            email: quote.email,
             customerName: quote.customer_name,
             device: quote.laptop_details,
-            status: status,
+            status: newRepairStatus,
           }),
         });
       } catch (err) {
-        console.error("Failed to send email notification:", err);
+        console.error("Email failed:", err);
       }
     }
   };
-
   const saveSpecs = async (id: number, updates: Partial<InventoryItem>) => {
     const { error } = await supabase
       .from("inventory")
@@ -265,9 +280,55 @@ export default function AdminDashboard() {
       </section>
 
       {/* REPAIR TRACKER */}
+      {/* SECTION 1: NEW LEADS / INTAKE QUEUE */}
+      <section className="mb-16">
+        <h2 className="text-3xl font-black mb-4 uppercase italic text-yellow-600 underline">
+          New Quote Leads
+        </h2>
+        <div className="border-4 border-black overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
+          <table className="w-full text-left">
+            <thead className="bg-yellow-100 border-b-4 border-black font-black uppercase text-sm">
+              <tr>
+                <th className="p-4">Customer</th>
+                <th className="p-4">Device Details</th>
+                <th className="p-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filterData(quotes.filter((q) => q.status === "pending")).map(
+                (quote) => (
+                  <tr key={quote.id} className="border-b-2 border-black">
+                    <td className="p-4">
+                      <span className="font-bold block">
+                        {quote.customer_name}
+                      </span>
+                      <span className="text-[10px] text-gray-500">
+                        {quote.email}
+                      </span>
+                    </td>
+                    <td className="p-4">{quote.laptop_details}</td>
+                    <td className="p-4 text-center">
+                      <button
+                        onClick={() =>
+                          updateRepairStatus(quote.id, "pending", quote)
+                        } // This moves them to tracker
+                        className="bg-black text-white px-4 py-2 font-black uppercase text-xs hover:bg-blue-600 transition-colors"
+                      >
+                        Approve & Start
+                      </button>
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* SECTION 2: ACTIVE REPAIR TRACKER */}
       <section className="mb-16">
         <h2 className="text-3xl font-black mb-4 uppercase italic text-blue-700 underline">
-          Active Customer Repairs
+          Active Workbench
         </h2>
         <div className="border-4 border-black overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
           <table className="w-full text-left">
@@ -275,46 +336,34 @@ export default function AdminDashboard() {
               <tr>
                 <th className="p-4">Customer</th>
                 <th className="p-4">Device</th>
-                <th className="p-4">Last Active</th>
                 <th className="p-4 text-center">Status</th>
               </tr>
             </thead>
             <tbody>
-              {filterData(quotes.filter((q) => q.status !== "purchased")).map(
-                (quote) => (
-                  // This now shows everything EXCEPT things you've already completed/purchased
-                  <tr key={quote.id} className="border-b-2 border-black">
-                    <td className="p-4 font-bold">
-                      {quote.customer_name}
-                      <span className="block text-[10px] text-blue-600">
-                        {quote.email}
-                      </span>
-                    </td>
-                    <td className="p-4">{quote.laptop_details}</td>
-                    <td className="p-4 font-bold">{quote.customer_name}</td>
-                    <td className="p-4">{quote.laptop_details}</td>
-                    <td className="p-4 text-xs font-mono">
-                      {quote.last_active
-                        ? new Date(quote.last_active).toLocaleString()
-                        : "N/A"}
-                    </td>
-                    <td className="p-4 text-center">
-                      <select
-                        defaultValue={quote.repair_status || "pending"}
-                        onChange={(e) =>
-                          updateRepairStatus(quote.id, e.target.value, quote)
-                        }
-                        className="border-2 border-black p-1 font-black uppercase text-xs"
-                      >
-                        <option value="pending">Diagnosing</option>
-                        <option value="parts">Waiting for Parts</option>
-                        <option value="fixing">On Bench</option>
-                        <option value="ready">Ready for Pickup</option>
-                      </select>
-                    </td>
-                  </tr>
+              {filterData(
+                quotes.filter(
+                  (q) => q.status !== "pending" && q.status !== "purchased"
                 )
-              )}
+              ).map((quote) => (
+                <tr key={quote.id} className="border-b-2 border-black">
+                  <td className="p-4 font-bold">{quote.customer_name}</td>
+                  <td className="p-4">{quote.laptop_details}</td>
+                  <td className="p-4 text-center">
+                    <select
+                      defaultValue={quote.repair_status || "pending"}
+                      onChange={(e) =>
+                        updateRepairStatus(quote.id, e.target.value, quote)
+                      }
+                      className="border-2 border-black p-1 font-black uppercase text-xs bg-white"
+                    >
+                      <option value="pending">Diagnosing</option>
+                      <option value="parts">Waiting for Parts</option>
+                      <option value="fixing">On Bench</option>
+                      <option value="ready">Ready for Pickup</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -536,6 +585,45 @@ export default function AdminDashboard() {
                 >
                   Close
                 </button>
+              </>
+            )}
+            {activeModal.type === "notes" && (
+              <>
+                <h2 className="text-3xl font-black uppercase mb-2 italic">
+                  Internal Logs
+                </h2>
+                <p className="text-xs font-bold text-blue-600 mb-4 uppercase">
+                  Customer: {activeModal.data.customer_name}
+                </p>
+                <textarea
+                  id="repair_notes"
+                  defaultValue={activeModal.data.notes}
+                  placeholder="e.g. Battery ordered 1/15, arriving Tuesday..."
+                  className="w-full border-4 border-black p-4 font-bold min-h-[150px] mb-6 focus:bg-yellow-50 outline-none"
+                />
+                <div className="flex gap-4">
+                  <button
+                    onClick={() =>
+                      saveNotes(
+                        activeModal.data.id,
+                        (
+                          document.getElementById(
+                            "repair_notes"
+                          ) as HTMLInputElement
+                        ).value
+                      )
+                    }
+                    className="flex-1 bg-black text-white p-4 font-black uppercase border-4 border-black shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] active:shadow-none active:translate-x-1 active:translate-y-1"
+                  >
+                    Save Logs
+                  </button>
+                  <button
+                    onClick={() => setActiveModal(null)}
+                    className="flex-1 font-black uppercase border-4 border-black"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </>
             )}
           </div>
