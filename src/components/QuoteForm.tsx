@@ -71,6 +71,7 @@ if (!error) {
             onChange={handleChange}
             className="w-full border-4 border-black p-4 font-bold bg-white text-black outline-none focus:bg-yellow-50"
           >
+            <option value="repair">Repair my Laptop</option> {/* ADD THIS LINE */}
             <option value="sell">Sell my Laptop for Cash</option>
             <option value="recycle">Recycle for Free</option>
           </select>
@@ -116,7 +117,7 @@ if (!error) {
           value={formData.specs}
           onChange={handleChange}
           rows={4}
-          placeholder="CPU, RAM, Storage & any issues..." 
+          placeholder="Repair needs (e.g. Cracked Screen) or Specs (CPU, RAM, Storage)..." 
           className="w-full border-4 border-black p-4 font-bold bg-white text-black placeholder:text-gray-400 outline-none focus:bg-blue-50"
         ></textarea>
       </div>
