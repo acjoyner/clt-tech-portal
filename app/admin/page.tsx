@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getShadow, getBorder } from "@/src/lib/design-tokens";
 
 // --- Interfaces ---
@@ -195,6 +196,27 @@ export default function AdminDashboard() {
 
   return (
     <div className="p-4 md:p-8 bg-white min-h-screen text-black">
+      {/* NAVIGATION BAR */}
+      <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-5xl font-black uppercase italic tracking-tighter">
+          Admin <span className="text-blue-600">Dashboard</span>
+        </h1>
+        <div className="flex gap-2">
+          <Link
+            href="/analytics"
+            className="bg-purple-600 text-white border-4 border-black px-4 py-2 font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-purple-700 transition-all"
+          >
+            📊 Analytics
+          </Link>
+          <Link
+            href="/inventory"
+            className="bg-green-600 text-white border-4 border-black px-4 py-2 font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-green-700 transition-all"
+          >
+            🛒 Inventory
+          </Link>
+        </div>
+      </div>
+
       {/* DEBUG STRIP */}
       <div className={`mb-8 p-4 ${getBorder('thin')} border-dashed border-red-500 bg-red-50 flex gap-6 font-mono text-xs overflow-x-auto`}>
         <div className="font-black uppercase">Debug Info:</div>
