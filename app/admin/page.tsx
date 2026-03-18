@@ -2,15 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase";
 import { useRouter } from "next/navigation";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import { getShadow, getBorder } from "@/src/lib/design-tokens";
 
 // --- Interfaces ---
 interface InventoryItem {
@@ -51,6 +43,7 @@ export default function AdminDashboard() {
   const [activeModal, setActiveModal] = useState<ModalState | null>(null);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const router = useRouter();
 
   // --- Data Fetching ---
@@ -203,7 +196,7 @@ export default function AdminDashboard() {
   return (
     <div className="p-4 md:p-8 bg-white min-h-screen text-black">
       {/* DEBUG STRIP */}
-      <div className="mb-8 p-4 border-4 border-dashed border-red-500 bg-red-50 flex gap-6 font-mono text-xs overflow-x-auto">
+      <div className={`mb-8 p-4 ${getBorder('thin')} border-dashed border-red-500 bg-red-50 flex gap-6 font-mono text-xs overflow-x-auto`}>
         <div className="font-black uppercase">Debug Info:</div>
         <div className="text-yellow-600 font-bold">
           Pending:{" "}
@@ -221,50 +214,90 @@ export default function AdminDashboard() {
 
       {/* NEW LEADS */}
       <section className="mb-16">
-        <h2 className="text-3xl font-black mb-4 uppercase italic text-yellow-600 underline leading-none">
-          New Quote Leads
-        </h2>
-        <div className="border-4 border-black overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
-          <table className="w-full text-left min-w-[700px]">
-            <thead className="bg-yellow-100 border-b-4 border-black font-black uppercase text-sm">
-              <tr>
-                <th className="p-4">Customer & Origin</th>
-                <th className="p-4">Device Details</th>
-                <th className="p-4 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {quotes
-                .filter((q) => q.status?.toLowerCase() === "pending")
-                .map((quote) => (
-                  <tr key={quote.id} className="border-b-2 border-black">
-                    <td className="p-4">
-                      <span className="font-bold block">
-                        {quote.customer_name}
-                      </span>
-                      <span className="text-[10px] text-gray-500 block">
-                        {quote.email}
-                      </span>
-                      <span className="inline-block mt-1 px-2 py-0.5 bg-black text-white text-[9px] font-black uppercase">
-                        {quote.lead_origin || "Unknown"}
-                      </span>
-                    </td>
-                    <td className="p-4">{quote.laptop_details}</td>
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() =>
-                          updateRepairStatus(quote.id, "diagnosing", quote)
-                        }
-                        className="bg-black text-white px-4 py-2 font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(37,99,235,1)]"
-                      >
-                        Approve & Start
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+        <div className="flex flex-col md:flex-row justify-between items-end mb-4 gap-4">
+          <h2 className="text-3xl font-black uppercase italic text-yellow-600 underline leading-none">
+            New Quote Leads
+          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-3 py-1 font-black uppercase text-xs border-2 border-black ${viewMode === "table" ? "bg-black text-white" : "bg-white text-black"}`}
+            >
+              Table
+            </button>
+            <button
+              onClick={() => setViewMode("cards")}
+              className={`px-3 py-1 font-black uppercase text-xs border-2 border-black ${viewMode === "cards" ? "bg-black text-white" : "bg-white text-black"}`}
+            >
+              Cards
+            </button>
+          </div>
         </div>
+
+        {viewMode === "table" ? (
+          <div className={`${getBorder('medium')} overflow-x-auto ${getShadow('medium')} bg-white`}>
+            <table className="w-full text-left min-w-[700px]">
+              <thead className="bg-yellow-100 border-b-4 border-black font-black uppercase text-sm">
+                <tr>
+                  <th className="p-4">Customer & Origin</th>
+                  <th className="p-4">Device Details</th>
+                  <th className="p-4 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quotes
+                  .filter((q) => q.status?.toLowerCase() === "pending")
+                  .map((quote) => (
+                    <tr key={quote.id} className="border-b-2 border-black">
+                      <td className="p-4">
+                        <span className="font-bold block">
+                          {quote.customer_name}
+                        </span>
+                        <span className="text-[10px] text-gray-500 block">
+                          {quote.email}
+                        </span>
+                        <span className="inline-block mt-1 px-2 py-0.5 bg-black text-white text-[9px] font-black uppercase">
+                          {quote.lead_origin || "Unknown"}
+                        </span>
+                      </td>
+                      <td className="p-4">{quote.laptop_details}</td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() =>
+                            updateRepairStatus(quote.id, "diagnosing", quote)
+                          }
+                          className={`bg-black text-white px-4 py-2 font-black uppercase text-xs ${getShadow('small')} hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all`}
+                        >
+                          Approve & Start
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {quotes
+              .filter((q) => q.status?.toLowerCase() === "pending")
+              .map((quote) => (
+                <div key={quote.id} className={`${getBorder('medium')} p-4 ${getShadow('medium')} bg-white`}>
+                  <div className="font-bold text-lg mb-1">{quote.customer_name}</div>
+                  <div className="text-[10px] text-gray-500 mb-2">{quote.email}</div>
+                  <span className="inline-block px-2 py-0.5 bg-black text-white text-[9px] font-black uppercase mb-3">
+                    {quote.lead_origin || "Unknown"}
+                  </span>
+                  <p className="text-sm font-bold mb-4">{quote.laptop_details}</p>
+                  <button
+                    onClick={() => updateRepairStatus(quote.id, "diagnosing", quote)}
+                    className={`w-full bg-black text-white px-4 py-2 font-black uppercase text-xs ${getShadow('small')} hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all`}
+                  >
+                    Approve & Start
+                  </button>
+                </div>
+              ))}
+          </div>
+        )}
       </section>
 
       {/* ACTIVE WORKBENCH */}
@@ -272,7 +305,7 @@ export default function AdminDashboard() {
         <h2 className="text-3xl font-black mb-4 uppercase italic text-blue-700 underline leading-none">
           Active Workbench
         </h2>
-        <div className="border-4 border-black overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
+        <div className={`${getBorder('medium')} overflow-x-auto ${getShadow('medium')} bg-white`}>
           <table className="w-full text-left min-w-[700px]">
             <thead className="bg-gray-100 border-b-4 border-black font-black uppercase text-sm">
               <tr>
@@ -333,7 +366,7 @@ export default function AdminDashboard() {
         <h2 className="text-3xl font-black mb-4 uppercase italic text-green-700 underline">
           Refurb Pipeline
         </h2>
-        <div className="border-4 border-black overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
+        <div className={`${getBorder('medium')} overflow-x-auto ${getShadow('medium')} bg-white`}>
           <table className="w-full text-left min-w-[700px]">
             <thead className="bg-gray-100 border-b-4 border-black font-black uppercase text-sm">
               <tr>
@@ -386,18 +419,18 @@ export default function AdminDashboard() {
 
       {/* PROFIT HISTORY */}
       <section className="mb-16">
-        <div className="flex justify-between items-end mb-4 text-black">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-4 text-black gap-4">
           <h2 className="text-3xl font-black uppercase italic leading-none underline">
             Profit History
           </h2>
           <div className="flex items-center gap-4">
             <button
               onClick={exportProfits}
-              className="bg-blue-600 text-white border-4 border-black px-4 py-2 font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-700 transition-all"
+              className={`${getBorder('medium')} bg-blue-600 text-white px-4 py-2 font-black uppercase text-xs ${getShadow('small')} hover:bg-blue-700 transition-all`}
             >
               Download CSV
             </button>
-            <div className="bg-green-400 border-4 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className={`bg-green-400 ${getBorder('medium')} p-4 ${getShadow('small')}`}>
               <span className="text-xs font-black uppercase block leading-none mb-1">
                 Net Profit
               </span>
@@ -407,7 +440,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-        <div className="border-4 border-black overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white text-black">
+        <div className={`${getBorder('medium')} overflow-x-auto ${getShadow('medium')} bg-white text-black`}>
           <table className="w-full text-left min-w-[700px]">
             <thead className="bg-black text-white font-black uppercase text-sm">
               <tr>
@@ -445,7 +478,7 @@ export default function AdminDashboard() {
       {/* MASTER MODAL SYSTEM */}
       {activeModal && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 text-black">
-          <div className="bg-white border-8 border-black p-8 max-w-md w-full shadow-[16px_16px_0px_0px_rgba(0,0,0,1)]">
+          <div className={`bg-white ${getBorder('thick')} p-8 max-w-md w-full ${getShadow('xlarge')}`}>
             {/* LOGS MODAL */}
             {activeModal.type === "notes" && (
               <>
@@ -552,26 +585,66 @@ export default function AdminDashboard() {
                   placeholder="$ Price"
                   className="w-full border-4 border-black p-4 text-3xl font-black mb-6 text-black"
                 />
+                
+                {/* Image Upload Section */}
+                <div className="mb-6">
+                  <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">
+                    Product Photo (optional)
+                  </label>
+                  <input
+                    id="pubImage"
+                    type="file"
+                    accept="image/*"
+                    className="w-full border-2 border-black p-3 font-bold text-black text-sm"
+                  />
+                  {activeModal.data.image_url && (
+                    <p className="text-[10px] font-bold text-green-600 mt-2">
+                      ✓ Current image set
+                    </p>
+                  )}
+                </div>
+
                 <button
-                  onClick={() =>
-                    handlePublish(
-                      activeModal.data.id,
-                      Number(
-                        (
-                          document.getElementById(
-                            "pubPrice"
-                          ) as HTMLInputElement
-                        ).value
-                      )
-                    )
-                  }
-                  className="w-full bg-blue-600 text-white border-4 border-black p-4 font-black uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+                  onClick={async () => {
+                    const price = Number(
+                      (document.getElementById("pubPrice") as HTMLInputElement).value
+                    );
+                    const imageInput = document.getElementById("pubImage") as HTMLInputElement;
+                    const imageFile = imageInput?.files?.[0];
+
+                    // First publish the item
+                    await handlePublish(activeModal.data.id, price);
+
+                    // Then upload image if provided
+                    if (imageFile) {
+                      const formData = new FormData();
+                      formData.append('file', imageFile);
+                      formData.append('itemId', activeModal.data.id.toString());
+
+                      try {
+                        const res = await fetch('/api/upload-inventory-image', {
+                          method: 'POST',
+                          body: formData,
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                          console.log('Image uploaded:', result.imageUrl);
+                          setRefreshSignal((s) => s + 1);
+                        }
+                      } catch (err) {
+                        console.error('Image upload failed:', err);
+                      }
+                    }
+
+                    setActiveModal(null);
+                  }}
+                  className="w-full bg-blue-600 text-white border-4 border-black p-4 font-black uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-4"
                 >
                   Go Live
                 </button>
                 <button
                   onClick={() => setActiveModal(null)}
-                  className="w-full mt-4 font-bold text-gray-400 uppercase text-xs text-black"
+                  className="w-full font-bold text-gray-400 uppercase text-xs text-black"
                 >
                   Cancel
                 </button>
