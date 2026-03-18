@@ -17,6 +17,7 @@ interface InventoryItem {
   sale_price_listing?: number;
   cpu?: string;
   battery_health?: string;
+  image_url?: string;
 }
 
 interface LaptopQuote {

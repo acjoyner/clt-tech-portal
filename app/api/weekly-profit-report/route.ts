@@ -159,16 +159,21 @@ export async function POST() {
   `;
 
   try {
-    const result = await resend.emails.send({
+    const { data, error: sendError } = await resend.emails.send({
       from: 'CLT Systems <onboarding@resend.dev>',
       to: ['anthony.c.joyner@gmail.com'],
       subject: `📊 Weekly Profit Report: $${netProfit.toFixed(2)} net (${totalUnits} units)`,
       html,
     });
 
+    if (sendError) {
+      console.error('Resend Error:', sendError);
+      return NextResponse.json({ error: sendError.message }, { status: 500 });
+    }
+
     return NextResponse.json({ 
       success: true, 
-      emailId: result.id,
+      emailId: data?.id, // Access the ID from the data property
       weekStart: weekAgo.toISOString(),
       weekEnd: now.toISOString(),
       metrics: { totalUnits, totalRevenue, totalCost, netProfit, avgProfitPerUnit }

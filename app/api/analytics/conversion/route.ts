@@ -79,12 +79,17 @@ export async function GET() {
       return acc;
     }, {} as Record<string, { leads: number; converted: number }>);
 
-    const timeSeriesData = Object.entries(dailyStats).map(([date, data]) => ({
-      date,
-      leads: data.leads,
-      converted: data.converted,
-      conversionRate: data.leads > 0 ? (data.converted / data.leads) * 100 : 0,
-    })).sort((a, b) => a.date.localeCompare(b.date));
+    const timeSeriesData = Object.entries(dailyStats).map(([date, data]) => {
+      // Cast 'data' to the correct shape so TS stops complaining
+      const stats = data as { leads: number; converted: number };
+      
+      return {
+        date,
+        leads: stats.leads,
+        converted: stats.converted,
+        conversionRate: stats.leads > 0 ? (stats.converted / stats.leads) * 100 : 0,
+      };
+    }).sort((a, b) => a.date.localeCompare(b.date));
 
     return NextResponse.json({
       overview: {

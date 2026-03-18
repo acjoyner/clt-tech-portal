@@ -1,11 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { supabase } from "../../../src/lib/supabase";
+import { supabase } from "@/src/lib/supabase";
 import { useRouter } from "next/navigation";
 import { getShadow, getBorder } from "@/src/lib/design-tokens";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -58,19 +56,28 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     const checkAdminAndFetch = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session || session.user.email !== "anthony.c.joyner@gmail.com") {
+      // 1. Get the response object first
+      const { data, error } = await supabase.auth.getSession();
+      
+      // 2. Explicitly check if data or session is null before touching .user
+      if (error || !data || !data.session) {
+        router.push("/login");
+        return;
+      }
+
+      // 3. Now TS knows data.session exists
+      const userEmail = data.session.user?.email;
+
+      if (userEmail !== "anthony.c.joyner@gmail.com") {
         router.push("/login");
         return;
       }
 
       try {
         const res = await fetch('/api/analytics/conversion');
-        const json = await res.json();
         if (res.ok) {
+          const json = await res.json();
           setData(json);
-        } else {
-          console.error('Analytics fetch failed:', json.error);
         }
       } catch (err) {
         console.error('Analytics fetch error:', err);
@@ -253,7 +260,7 @@ export default function AnalyticsPage() {
                 />
                 <Line 
                   yAxisId="left"
-                  type="monian" 
+                  type="monotone" 
                   dataKey="converted" 
                   stroke="#16a34a" 
                   strokeWidth={3}
